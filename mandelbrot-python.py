@@ -34,7 +34,7 @@ def main():
     for i in range(lx):
         for j in range(ly):
             x = re_min + i * d
-            y = re_min + j * d
+            y = im_min + j * d
 
             c = x + 1.0j * y
             z = 0.0 + 0.0j

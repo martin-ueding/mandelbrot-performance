@@ -26,7 +26,7 @@ def main():
 
     im, re = np.mgrid[im_min:im_max:d, re_min:re_max:d]
     c = 1.0 * re + im * 1.0j
-    z = c.copy()
+    z = np.zeros_like(c)
 
     radius = 5
     max_iter = 100
@@ -37,7 +37,6 @@ def main():
 
     for i in range(100):
         z = z**2 + c
-
         a = np.abs(z)
         selection = (a >= radius) & (iters == 0)
         sel = np.where(selection)

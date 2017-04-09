@@ -13,11 +13,11 @@ size_t idx(size_t const bx, size_t const y) {
     return y * blocks_x + bx;
 }
 
-double c_re(size_t const bx, size_t const x) {
+double get_c_re(size_t const bx, size_t const x) {
     return re_min + (bx * veclen + x) * d;
 }
 
-double c_im(size_t const y) {
+double get_c_im(size_t const y) {
     return im_min + y * d;
 }
 
@@ -27,40 +27,47 @@ struct soa {
 };
 
 int main(int argc, char **argv) {
-    std::vector<size_t> escape_iter(lx * ly, max_iter);
+    std::vector<uint8_t> escape_iter(lx * ly, max_iter);
 
     auto const time1 = omp_get_wtime();
 
 #pragma omp parallel for collapse(2)
     for (size_t y = 0; y < ly; ++y) {
         for (size_t bx = 0; bx < blocks_x; ++bx) {
-            bool finished[veclen] = {false};
-            double re[veclen] = {0.0};
-            double im[veclen] = {0.0};
-            double re[veclen] = {0.0};
-            double im[veclen] = {0.0};
+            alignas(veclen * sizeof(bool)) bool finished[veclen] = {false};
+            alignas(veclen * sizeof(bool)) bool written[veclen] = {false};
+
+            alignas(veclen * sizeof(double)) double z_re[veclen] = {0.0};
+            alignas(veclen * sizeof(double)) double z_im[veclen] = {0.0};
+            alignas(veclen * sizeof(double)) double new_z_re[veclen];
+            alignas(veclen * sizeof(double)) double new_z_im[veclen];
+
+            alignas(veclen * sizeof(double)) double c_re[veclen] = {0.0};
+            for (size_t v = 0; v < veclen; ++v) {
+                c_re[v] = get_c_re(bx, v);
+            }
+            double c_im = get_c_im(y);
+
             for (size_t iter = 0; iter < max_iter; ++iter) {
-#pragma omp simd aligned(z : 256)
+#pragma omp simd aligned(z_re, z_im, new_z_re, new_z_im, finished)
                 for (size_t v = 0; v < veclen; ++v) {
-                    auto const z_re = z[0][v];
-                    auto const z_im = z[1][v];
+                    new_z_re[v] =
+                        z_re[v] * z_re[v] - z_im[v] * z_im[v] + c_re[v];
+                    new_z_im[v] = 2 * z_re[v] * z_im[v] + c_im;
 
-                    auto const abs = z_re * z_re + z_im * z_im;
+                    z_re[v] = new_z_re[v];
+                    z_im[v] = new_z_im[v];
 
-                    z[0][v] = z_re * z_re - z_im * z_im + c_re(bx, v);
-                    z[1][v] = 2 * z_re * z_im + c_im(y);
+                    auto const abs = z_re[v] * z_re[v] + z_im[v] * z_im[v];
 
-                    if (unlikely(abs > radius)) {
+                    if (!finished[v] && unlikely(abs > radius)) {
                         finished[v] = true;
+                        escape_iter[idx(bx, y) * veclen + v] = iter;
                     }
                 }
 
                 bool all_finished = true;
                 for (size_t v = 0; v < veclen; ++v) {
-                    if (finished[v] &&
-                        escape_iter[idx(bx, y) * veclen + v] == max_iter) {
-                        escape_iter[idx(bx, y) * veclen + v] = iter;
-                    }
                     all_finished &= finished[v];
                 }
 

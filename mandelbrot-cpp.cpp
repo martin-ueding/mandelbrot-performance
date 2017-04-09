@@ -35,18 +35,18 @@ int main(int argc, char **argv) {
             double z_re = 0.0;
             double z_im = 0.0;
             for (size_t iter = 0; iter < max_iter; ++iter) {
+                auto const new_z_re = z_re * z_re - z_im * z_im + c_re(x);
+                auto const new_z_im = 2 * z_re * z_im + c_im(y);
+
+                z_re = new_z_re;
+                z_im = new_z_im;
+
                 auto const abs = z_re * z_re + z_im * z_im;
 
                 if (unlikely(abs >= radius)) {
                     escape_iter[idx(x, y)] = iter;
                     break;
                 }
-
-                auto const new_z_re = z_re * z_re - z_im * z_im + c_re(x);
-                auto const new_z_im = 2 * z_re * z_im + c_im(y);
-
-                z_re = new_z_re;
-                z_im = new_z_im;
             }
         }
     }
