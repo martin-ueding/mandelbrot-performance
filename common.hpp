@@ -1,4 +1,4 @@
-// Copyright © 2017 Martin Ueding <dev@martin-ueding.de>
+// Copyright © 2017-2018 Martin Ueding <dev@martin-ueding.de>
 
 #pragma once
 
@@ -9,7 +9,8 @@
 #define unlikely(expr) __builtin_expect(!!(expr), 0)
 #define likely(expr) __builtin_expect(!!(expr), 1)
 
-uint8_t transform(int x, int max);
+uint8_t transform(int x, int max, int to = 255);
+double transform_double(double x, double max);
 
 void print_timings(double const time1,
                    double const time2,
