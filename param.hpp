@@ -9,6 +9,7 @@ double constexpr re_max = 1.5;
 double constexpr im_min = -1.3;
 double constexpr im_max = 1.3;
 
+//size_t constexpr ly = 50 / 2.54 * 50;
 size_t constexpr ly = 1000;
 
 double constexpr d = (im_max - im_min) / ly;
