@@ -25,10 +25,11 @@ double c_im(size_t const y) {
 }
 
 int main(int argc, char **argv) {
-    std::vector<int> escape_iter(lx * ly, max_iter);
-    std::vector<double> smooth_color(lx * ly, max_iter);
+  std::cout << "Computing a " << lx << " × " << ly << " pixel image …"
+            << std::endl;
+  std::vector<int> escape_iter(lx * ly, max_iter);
 
-    auto const time1 = omp_get_wtime();
+  auto const time1 = omp_get_wtime();
 
 #pragma omp parallel for collapse(2)
     for (size_t y = 0; y < ly; ++y) {
@@ -45,9 +46,6 @@ int main(int argc, char **argv) {
                   auto const abs = std::sqrt(z_re * z_re + z_im * z_im);
 
                   escape_iter[idx(x, y)] = iter;
-                  smooth_color[idx(x, y)] =
-                      iter + 1.0 -
-                      std::log(std::log(new_abs_sq) / 2) / std::log(radius);
                   break;
                 }
 
@@ -57,9 +55,6 @@ int main(int argc, char **argv) {
             }
         }
     }
-
-    auto const normalization_smooth =
-        *std::max_element(std::begin(smooth_color), std::end(smooth_color));
 
     auto const normalization_escape =
         *std::max_element(std::begin(escape_iter), std::end(escape_iter));
@@ -72,13 +67,11 @@ int main(int argc, char **argv) {
         for (size_t x = 0; x < lx; ++x) {
           cv::Vec3f in(0, 0, 0);
 
-            auto const sm =
-                smooth_color[idx(x, y)] / normalization_smooth;
-            auto const es =
-                transform_double(escape_iter[idx(x, y)], normalization_escape);
+            auto const es = transform_double(
+                std::max(4, escape_iter[idx(x, y)]), normalization_escape);
 
-          if (escape_iter[idx(x, y)] < normalization_escape) {
-            in = cv::Vec3f(10 + 10 * es, 1.0 - es, es);
+            if (escape_iter[idx(x, y)] < normalization_escape) {
+              in = cv::Vec3f(10 + 10 * es, 1.0 - es, es);
           }
 
           lattice.at<cv::Vec3f>(y, x) = in;
