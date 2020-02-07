@@ -1,4 +1,4 @@
-// Copyright © 2017-2018 Martin Ueding <dev@martin-ueding.de>
+// Copyright © 2017-2018 Martin Ueding <martin-ueding.de>
 
 #include "common.hpp"
 #include "param.hpp"

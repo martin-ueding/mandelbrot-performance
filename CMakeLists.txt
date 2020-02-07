@@ -1,4 +1,4 @@
-# Copyright © 2017 Martin Ueding <dev@martin-ueding.de>
+# Copyright © 2017 Martin Ueding <martin-ueding.de>
 
 cmake_minimum_required(VERSION 3.0)
 
